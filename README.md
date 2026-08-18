@@ -2,7 +2,7 @@
 
 A single-page classroom dashboard for fifth- and sixth-grade CIRC.
 
-**Live site:** https://percycodesios.github.io/theplaybook/
+**Live site:** https://percycodesios.github.io/playbook/
 
 GitHub Pages publishes `index.html` from the root of the `main` branch.
 
