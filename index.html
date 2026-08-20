@@ -1,283 +1,91 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="description" content="The Playbook classroom dashboard for fifth- and sixth-grade CIRC.">
-  <title>The Playbook | Day 1</title>
-  <style>
-    :root {
-      --bg: #0f1613;
-      --panel: #111b17;
-      --panel2: #16221d;
-      --line: rgba(255,255,255,.12);
-      --text: #f4f7f5;
-      --muted: #a8b6ae;
-      --green: #1fc77a;
-      --green2: #53d337;
-      --shadow: 0 18px 60px rgba(0,0,0,.45);
-    }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text); }
-    #playbook { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #faf9f5; }
-
-    #day1Button {
-      position: fixed; right: 18px; bottom: 18px; z-index: 40;
-      border: 1px solid rgba(83,211,55,.55); background: rgba(15,22,19,.94); color: var(--text);
-      border-radius: 999px; padding: 11px 15px; font: 800 12px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      letter-spacing: .08em; text-transform: uppercase; cursor: pointer; box-shadow: var(--shadow); backdrop-filter: blur(12px);
-    }
-    #day1Button span { color: var(--green2); }
-    #day1Button:hover, #day1Button:focus-visible { outline: none; border-color: var(--green2); transform: translateY(-1px); }
-
-    #backdrop { position: fixed; inset: 0; z-index: 50; background: rgba(0,0,0,.42); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
-    #drawer {
-      position: fixed; top: 0; right: 0; bottom: 0; z-index: 60; width: min(470px, 100vw);
-      background: rgba(15,22,19,.985); border-left: 1px solid var(--line); box-shadow: var(--shadow);
-      transform: translateX(102%); transition: transform .22s ease; display: flex; flex-direction: column;
-    }
-    body.drawer-open #backdrop { opacity: 1; pointer-events: auto; }
-    body.drawer-open #drawer { transform: translateX(0); }
-    .drawer-head { padding: 20px 20px 16px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, rgba(31,199,122,.08), transparent); }
-    .head-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
-    .eyebrow { color: var(--green2); font-weight: 900; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; margin-bottom: 6px; }
-    h1 { margin: 0; font-size: 25px; line-height: 1.05; letter-spacing: -.03em; }
-    .sub { margin-top: 7px; color: var(--muted); font-size: 13px; }
-    .close { border: 1px solid var(--line); background: var(--panel2); color: var(--text); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; font-size: 20px; }
-    .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
-    .chip { border: 1px solid var(--line); background: rgba(255,255,255,.04); color: var(--muted); border-radius: 999px; padding: 6px 9px; font-size: 11px; font-weight: 800; }
-    .chip.strong { color: #dffbe9; border-color: rgba(31,199,122,.38); background: rgba(31,199,122,.09); }
-    .drawer-body { overflow: auto; padding: 14px 16px 24px; }
-    .goal { border: 1px solid rgba(31,199,122,.28); background: rgba(31,199,122,.07); padding: 12px 13px; border-radius: 14px; margin-bottom: 12px; font-size: 13px; line-height: 1.45; }
-    .step { border: 1px solid var(--line); background: var(--panel); border-radius: 14px; padding: 13px; margin-top: 10px; }
-    .step-top { display: grid; grid-template-columns: 30px 1fr auto; gap: 10px; align-items: start; }
-    .num { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: rgba(31,199,122,.1); border: 1px solid rgba(31,199,122,.28); color: var(--green2); font-weight: 900; }
-    .step h2 { margin: 1px 0 3px; font-size: 14px; }
-    .time { color: var(--muted); font-size: 11px; font-weight: 800; padding-top: 4px; }
-    .step p { margin: 8px 0 0; color: #d7dfda; font-size: 12.5px; line-height: 1.47; }
-    .quote { margin-top: 8px; padding-left: 10px; border-left: 2px solid var(--green); color: #f3f8f5; font-weight: 650; }
-    .rules { margin: 8px 0 0; padding-left: 20px; color: #d7dfda; font-size: 12.5px; line-height: 1.55; }
-    .action-row { display: flex; gap: 8px; margin-top: 10px; }
-    .action { flex: 1; border: 1px solid rgba(31,199,122,.36); background: rgba(31,199,122,.1); color: #e8fff1; border-radius: 10px; padding: 9px 10px; font-weight: 850; font-size: 11px; cursor: pointer; }
-    .action:hover, .action:focus-visible { outline: none; border-color: var(--green2); background: rgba(31,199,122,.16); }
-    .tiny { margin-top: 12px; color: var(--muted); font-size: 11px; line-height: 1.45; text-align: center; }
-
-    #presenter { position: fixed; inset: 0; z-index: 100; background: #08100c; display: none; color: white; }
-    #presenter.open { display: grid; grid-template-rows: auto 1fr auto; }
-    .present-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
-    .present-title { font-size: clamp(18px, 3vw, 28px); font-weight: 950; letter-spacing: -.03em; }
-    .present-title small { display: block; color: var(--green2); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; margin-bottom: 4px; }
-    .present-close { border: 1px solid var(--line); background: #132019; color: white; border-radius: 10px; padding: 9px 12px; cursor: pointer; font-weight: 800; }
-    .present-main { min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 18px; padding: 18px 22px; }
-    .visual { min-height: 0; border: 1px solid var(--line); background: #f7f7f2; border-radius: 20px; display: grid; place-items: center; padding: 24px; overflow: hidden; }
-    .visual svg { width: min(76vw, 760px); height: min(58vh, 520px); }
-    .coach { border: 1px solid var(--line); background: #101914; border-radius: 18px; padding: 16px; align-self: stretch; }
-    .coach h3 { margin: 0 0 10px; font-size: 13px; color: var(--green2); text-transform: uppercase; letter-spacing: .1em; }
-    .coach p { font-size: 13px; color: #d8e2dc; line-height: 1.5; margin: 0 0 12px; }
-    #timer { font-variant-numeric: tabular-nums; font-size: 54px; line-height: 1; font-weight: 950; letter-spacing: -.05em; margin: 14px 0; }
-    .timer-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .timer-buttons button { border: 1px solid var(--line); background: #18251e; color: white; border-radius: 10px; padding: 10px; font-weight: 850; cursor: pointer; }
-    .timer-buttons button:first-child { border-color: rgba(31,199,122,.4); color: #e8fff1; }
-    .present-foot { padding: 12px 22px 18px; color: #b8c6be; text-align: center; font-size: 13px; }
-    .present-foot strong { color: white; }
-
-    @media (max-width: 760px) {
-      #day1Button { right: 12px; bottom: 12px; padding: 10px 12px; }
-      .present-main { grid-template-columns: 1fr; overflow: auto; }
-      .visual { min-height: 48vh; }
-      .coach { align-self: auto; }
-      #timer { font-size: 46px; }
-    }
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="The Playbook classroom dashboard for fifth- and sixth-grade CIRC.">
+<title>The Playbook | Day 1</title>
+<style>
+:root{--bg:#0f1613;--p:#111b17;--l:#ffffff1f;--t:#f4f7f5;--m:#a8b6ae;--g:#53d337}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#playbook{position:fixed;inset:0;width:100%;height:100%;border:0;background:#faf9f5}
+#open{position:fixed;right:18px;bottom:18px;z-index:40;border:1px solid #53d33788;background:#0f1613f2;color:#fff;border-radius:999px;padding:11px 15px;font-weight:900;letter-spacing:.06em;cursor:pointer}
+#open b,.eyebrow,.time{color:var(--g)}
+#shade{position:fixed;inset:0;z-index:50;background:#0007;opacity:0;pointer-events:none;transition:.2s}
+#drawer{position:fixed;z-index:60;top:0;right:0;bottom:0;width:min(510px,100vw);background:#0f1613fc;border-left:1px solid var(--l);transform:translateX(102%);transition:.2s;display:flex;flex-direction:column}
+body.open #shade{opacity:1;pointer-events:auto}body.open #drawer{transform:none}
+header{padding:20px;border-bottom:1px solid var(--l)}.head{display:flex;justify-content:space-between;gap:12px}.eyebrow{font-size:11px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+h1{margin:5px 0 0;font-size:26px}.sub{color:var(--m);margin-top:6px}.x{width:36px;height:36px;border-radius:10px;border:1px solid var(--l);background:#16221d;color:#fff;font-size:20px;cursor:pointer}
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.chip{border:1px solid var(--l);border-radius:999px;padding:6px 9px;color:var(--m);font-size:11px;font-weight:800}.chip:first-child{color:#eaffef;border-color:#53d33766;background:#53d33714}
+main{overflow:auto;padding:14px 16px 26px}.goal,.flow,.step{border:1px solid var(--l);border-radius:14px;padding:12px 13px;margin-bottom:10px}.goal{border-color:#53d33755;background:#53d33712}.flow{background:#ffffff08}
+.grid{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;margin-top:8px;font-size:12px;line-height:1.4;color:#d7dfda}.grid b{color:var(--g);font-variant-numeric:tabular-nums}
+.step{background:var(--p)}.top{display:grid;grid-template-columns:30px 1fr auto;gap:10px}.n{width:30px;height:30px;display:grid;place-items:center;border:1px solid #53d33755;background:#53d33712;border-radius:9px;color:var(--g);font-weight:900}
+h2{font-size:14px;margin:3px 0}.time{font-size:11px;font-weight:900;padding-top:5px}.step p{font-size:12.5px;line-height:1.48;color:#d7dfda}.quote{border-left:2px solid var(--g);padding-left:10px;color:#fff!important;font-weight:700}.rules{font-size:12.5px;line-height:1.55;color:#d7dfda}
+.action{width:100%;margin-top:4px;padding:9px;border-radius:10px;border:1px solid #53d33766;background:#53d33716;color:#effff4;font-weight:900;cursor:pointer}.tiny{text-align:center;color:var(--m);font-size:11px;line-height:1.4;margin-top:12px}
+#present{position:fixed;inset:0;z-index:100;background:#08100c;display:none;color:#fff}#present.show{display:grid;grid-template-rows:auto 1fr auto}
+.ph{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--l)}.pt{font-size:26px;font-weight:950}.pt small{display:block;color:var(--g);font-size:11px;letter-spacing:.15em;text-transform:uppercase}
+.back{border:1px solid var(--l);background:#132019;color:#fff;border-radius:10px;padding:9px 12px;font-weight:800;cursor:pointer}
+.pm{min-height:0;display:grid;grid-template-columns:minmax(0,1fr)250px;gap:18px;padding:18px 22px}.visual{display:grid;place-items:center;border:1px solid var(--l);background:#f7f7f2;border-radius:20px;padding:24px}.visual svg{width:min(76vw,760px);height:min(58vh,520px)}
+.coach{border:1px solid var(--l);background:#101914;border-radius:18px;padding:16px}.coach h3{color:var(--g);font-size:13px;text-transform:uppercase}.coach p{font-size:13px;line-height:1.5;color:#d8e2dc}
+#timer{font-size:54px;font-weight:950;margin:14px 0;font-variant-numeric:tabular-nums}.tb{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tb button{padding:10px;border-radius:10px;border:1px solid var(--l);background:#18251e;color:#fff;font-weight:850;cursor:pointer}
+.pf{padding:12px 22px 18px;text-align:center;color:#b8c6be;font-size:13px}
+@media(max-width:760px){.pm{grid-template-columns:1fr;overflow:auto}.visual{min-height:48vh}#open{right:12px;bottom:12px}}
+</style>
 </head>
 <body>
-  <iframe id="playbook" src="./app.html" title="The Playbook classroom dashboard"></iframe>
-
-  <button id="day1Button" type="button" aria-controls="drawer" aria-expanded="false"><span>Day 1</span> • M&amp;M Challenge</button>
-  <div id="backdrop" aria-hidden="true"></div>
-
-  <aside id="drawer" aria-label="Day 1 M and M Challenge">
-    <div class="drawer-head">
-      <div class="head-row">
-        <div>
-          <div class="eyebrow">First Day • Day 1</div>
-          <h1>The M&amp;M Challenge</h1>
-          <div class="sub">Macek + Micco • Trust + Respect</div>
-        </div>
-        <button class="close" id="closeDrawer" type="button" aria-label="Close Day 1 lesson">×</button>
-      </div>
-      <div class="chips">
-        <span class="chip strong">15–18 min</span>
-        <span class="chip">24 students</span>
-        <span class="chip">12 pairs</span>
-        <span class="chip">Paper + pencil</span>
-      </div>
-    </div>
-
-    <div class="drawer-body">
-      <div class="goal"><strong>Goal:</strong> Students experience why trust and respect matter before we explain the rules. Keep it light, fast, and funny.</div>
-
-      <section class="step">
-        <div class="step-top"><div class="num">1</div><div><h2>Meet the M&amp;M Duo</h2></div><div class="time">2 min</div></div>
-        <p class="quote">“You get two teachers in here, and conveniently our last names are Macek and Micco. So obviously, we’re the M&amp;M Duo.”</p>
-        <p><strong>Tammy:</strong> Respect for each other, the room, the equipment, and yourself.<br><strong>Kenny:</strong> Trust with equipment, choices, ideas, and freedom.</p>
-        <p class="quote">“Trust and respect have to go both ways. So instead of giving you a speech about it, we’re going to test it.”</p>
-      </section>
-
-      <section class="step">
-        <div class="step-top"><div class="num">2</div><div><h2>Round 1 • Trust Test</h2></div><div class="time">4 min</div></div>
-        <p>Pairs choose an <strong>Engineer</strong> who faces the board and a <strong>Builder</strong> who turns away with paper and pencil. Engineer describes. Builder draws. <strong>No questions allowed.</strong></p>
-        <div class="action-row"><button class="action" type="button" data-present="round1">Project Round 1 + Timer</button></div>
-      </section>
-
-      <section class="step">
-        <div class="step-top"><div class="num">3</div><div><h2>Laugh + Debrief</h2></div><div class="time">1 min</div></div>
-        <p>Builders turn around and hold drawings up. Pick three funny ones before recycling.</p>
-        <p class="quote">“What made that hard?”</p>
-      </section>
-
-      <section class="step">
-        <div class="step-top"><div class="num">4</div><div><h2>Round 2 • Add Respect</h2></div><div class="time">4 min</div></div>
-        <p>Swap roles. New Builders turn away. This time <strong>Builders may ask questions</strong> and Engineers must listen and answer honestly.</p>
-        <div class="action-row"><button class="action" type="button" data-present="round2">Project Round 2 + Timer</button></div>
-      </section>
-
-      <section class="step">
-        <div class="step-top"><div class="num">5</div><div><h2>Make the Connection</h2></div><div class="time">3 min</div></div>
-        <p class="quote">“Which round worked better? Why?”</p>
-        <p>Land on communication, listening, questions, and honest answers.</p>
-        <p class="quote">“If you don’t understand something, ask. If something goes wrong, tell us. If you make a mistake, own it. If your partner needs help, help them.”</p>
-        <p><strong>That is how you earn more freedom in this room.</strong></p>
-      </section>
-
-      <section class="step">
-        <div class="step-top"><div class="num">6</div><div><h2>Laptop Reveal</h2></div><div class="time">2 min</div></div>
-        <p class="quote">“So what were you actually drawing?”</p>
-        <p><strong>The M&amp;M Laptop Rule:</strong> Treat it like it belongs to someone you respect.</p>
-        <ol class="rules">
-          <li>Two hands when carrying it.</li>
-          <li>Closed when moving.</li>
-          <li>Flat and safe when using.</li>
-          <li>If something happens, tell us immediately.</li>
-        </ol>
-        <p>“No hiding it. No pretending it didn’t happen. Telling us the truth is part of trust.”</p>
-      </section>
-
-      <section class="step">
-        <div class="step-top"><div class="num">7</div><div><h2>Close</h2></div><div class="time">1 min</div></div>
-        <p class="quote">“CIRC isn’t about getting everything right the first time. It is about trying something, communicating, changing it, and making it better.”</p>
-        <p><strong>Tammy:</strong> “Respect.”<br><strong>Kenny:</strong> “Trust.”<br><strong>Together:</strong> “Welcome to the M&amp;M Duo.”</p>
-      </section>
-
-      <div class="tiny">Before students enter, put <strong>M&amp;M • TRUST + RESPECT</strong> on the board. Skip the giant rules slideshow.</div>
-    </div>
-  </aside>
-
-  <section id="presenter" aria-label="Projected challenge screen">
-    <div class="present-head">
-      <div class="present-title"><small id="presentKicker">M&amp;M Challenge</small><span id="presentTitle">Round 1</span></div>
-      <button class="present-close" id="closePresenter" type="button">Back to lesson</button>
-    </div>
-    <div class="present-main">
-      <div class="visual" id="visual"></div>
-      <aside class="coach">
-        <h3>Teacher Controls</h3>
-        <p id="presentRule">Engineer describes. Builder draws. No questions.</p>
-        <div id="timer">3:00</div>
-        <div class="timer-buttons">
-          <button id="startPause" type="button">Start</button>
-          <button id="resetTimer" type="button">Reset</button>
-        </div>
-      </aside>
-    </div>
-    <div class="present-foot" id="presentFoot"><strong>Builders:</strong> backs to the board. <strong>Engineers:</strong> use words only.</div>
-  </section>
-
-  <script>
-    (function () {
-      const body = document.body;
-      const day1Button = document.getElementById('day1Button');
-      const drawer = document.getElementById('drawer');
-      const backdrop = document.getElementById('backdrop');
-      const closeDrawer = document.getElementById('closeDrawer');
-      const presenter = document.getElementById('presenter');
-      const closePresenter = document.getElementById('closePresenter');
-      const visual = document.getElementById('visual');
-      const presentTitle = document.getElementById('presentTitle');
-      const presentRule = document.getElementById('presentRule');
-      const presentFoot = document.getElementById('presentFoot');
-      const timerEl = document.getElementById('timer');
-      const startPause = document.getElementById('startPause');
-      const resetTimer = document.getElementById('resetTimer');
-
-      function setDrawer(open) {
-        body.classList.toggle('drawer-open', open);
-        day1Button.setAttribute('aria-expanded', String(open));
-        if (open) drawer.scrollTop = 0;
-      }
-      day1Button.addEventListener('click', () => setDrawer(true));
-      closeDrawer.addEventListener('click', () => setDrawer(false));
-      backdrop.addEventListener('click', () => setDrawer(false));
-
-      const art = {
-        round1: '<svg viewBox="0 0 800 520" role="img" aria-label="Round one mystery drawing"><rect x="92" y="72" width="616" height="376" rx="8" fill="none" stroke="#142019" stroke-width="12"/><circle cx="180" cy="155" r="52" fill="none" stroke="#142019" stroke-width="12"/><path d="M400 155 L510 330 L290 330 Z" fill="none" stroke="#142019" stroke-width="12" stroke-linejoin="round"/><rect x="585" y="320" width="70" height="70" fill="none" stroke="#142019" stroke-width="12"/><line x1="150" y1="390" x2="330" y2="390" stroke="#142019" stroke-width="12" stroke-linecap="round"/></svg>',
-        round2: '<svg viewBox="0 0 800 520" role="img" aria-label="Round two laptop drawing"><rect x="170" y="72" width="460" height="300" rx="18" fill="none" stroke="#142019" stroke-width="12"/><rect x="200" y="102" width="400" height="235" rx="5" fill="none" stroke="#142019" stroke-width="8"/><circle cx="400" cy="354" r="7" fill="#142019"/><path d="M135 392 H665 L715 455 H85 Z" fill="none" stroke="#142019" stroke-width="12" stroke-linejoin="round"/><rect x="335" y="414" width="130" height="22" rx="5" fill="none" stroke="#142019" stroke-width="6"/></svg>'
-      };
-
-      let seconds = 180;
-      let interval = null;
-      function paintTimer() {
-        const m = Math.floor(seconds / 60);
-        const s = String(seconds % 60).padStart(2, '0');
-        timerEl.textContent = m + ':' + s;
-      }
-      function stopTimer() {
-        if (interval) clearInterval(interval);
-        interval = null;
-        startPause.textContent = 'Start';
-      }
-      function reset() {
-        stopTimer();
-        seconds = 180;
-        paintTimer();
-      }
-      startPause.addEventListener('click', function () {
-        if (interval) { stopTimer(); return; }
-        if (seconds <= 0) seconds = 180;
-        startPause.textContent = 'Pause';
-        interval = setInterval(function () {
-          seconds -= 1;
-          paintTimer();
-          if (seconds <= 0) stopTimer();
-        }, 1000);
-      });
-      resetTimer.addEventListener('click', reset);
-
-      function openPresenter(round) {
-        reset();
-        visual.innerHTML = art[round];
-        if (round === 'round1') {
-          presentTitle.textContent = 'Round 1 • Trust Test';
-          presentRule.textContent = 'Engineer describes. Builder draws. No questions allowed.';
-          presentFoot.innerHTML = '<strong>Builders:</strong> backs to the board. <strong>Engineers:</strong> use words only.';
-        } else {
-          presentTitle.textContent = 'Round 2 • Add Respect';
-          presentRule.textContent = 'Builder may ask questions. Engineer listens and answers honestly.';
-          presentFoot.innerHTML = '<strong>New Builders:</strong> backs to the board. <strong>New Engineers:</strong> listen, clarify, answer.';
-        }
-        presenter.classList.add('open');
-      }
-      document.querySelectorAll('[data-present]').forEach(function (button) {
-        button.addEventListener('click', function () { openPresenter(button.dataset.present); });
-      });
-      closePresenter.addEventListener('click', function () { stopTimer(); presenter.classList.remove('open'); });
-      document.addEventListener('keydown', function (e) {
-        if (e.key !== 'Escape') return;
-        if (presenter.classList.contains('open')) { stopTimer(); presenter.classList.remove('open'); }
-        else setDrawer(false);
-      });
-      paintTimer();
-    }());
-  </script>
-</body>
-</html>
+<iframe id="playbook" src="./app.html" title="The Playbook classroom dashboard"></iframe>
+<button id="open"><b>DAY 1</b> • M&amp;M CHALLENGE</button><div id="shade"></div>
+<aside id="drawer">
+<header><div class="head"><div><div class="eyebrow">First Day • Day 1</div><h1>The M&amp;M Challenge</h1><div class="sub">Macek + Micco • Trust + Respect</div></div><button class="x" id="close">×</button></div>
+<div class="chips"><span class="chip">35 min class</span><span class="chip">15–18 min challenge</span><span class="chip">24 students • 12 pairs</span><span class="chip">Paper + pencil</span></div></header>
+<main>
+<div class="goal"><strong>Day 1 goal:</strong> Keep it easy, welcoming, and active. Students experience trust and respect instead of sitting through a rules speech.</div>
+<div class="flow"><strong>35-minute run-of-show</strong><div class="grid">
+<b>0–5</b><span>Welcome + M&amp;M Duo. <strong>Tammy = Respect. Kenny = Trust.</strong></span>
+<b>5–9</b><span>Round 1. Engineer describes. Builder draws. No questions.</span>
+<b>9–11</b><span>Reveal drawings, laugh, ask what made it hard.</span>
+<b>11–15</b><span>Swap. Round 2 allows questions and honest answers.</span>
+<b>15–20</b><span>Compare rounds. Connect listening, honesty, trust, respect.</span>
+<b>20–25</b><span>Laptop/equipment expectations. Only the four rules below.</span>
+<b>25–32</b><span>Quick CIRC preview: <strong>Talk • Make • Show.</strong> Try, test, change, improve.</span>
+<b>32–35</b><span>Questions + verbal exit check: “What does trust or respect look like in CIRC?”</span>
+</div></div>
+<section class="step"><div class="top"><div class="n">1</div><div><h2>Meet the M&amp;M Duo</h2></div><div class="time">2–5 min</div></div>
+<p class="quote">“You get two teachers in here, and conveniently our last names are Macek and Micco. So obviously, we’re the M&amp;M Duo.”</p>
+<p><strong>Tammy / Respect:</strong> each other, yourself, the room, and the equipment.<br><strong>Kenny / Trust:</strong> equipment, choices, ideas, and freedom.</p>
+<p class="quote">“Trust and respect have to go both ways. Instead of giving you a speech about it, we’re going to test it.”</p></section>
+<section class="step"><div class="top"><div class="n">2</div><div><h2>Round 1 • Trust Test</h2></div><div class="time">4 min</div></div>
+<p>Pairs. <strong>Engineer faces the board.</strong> <strong>Builder turns away</strong> with paper and pencil. Engineer describes. Builder draws. <strong>No questions allowed.</strong></p>
+<button class="action" data-round="r1">Project Round 1 + 3:00 Timer</button></section>
+<section class="step"><div class="top"><div class="n">3</div><div><h2>Reveal + Laugh</h2></div><div class="time">2 min</div></div>
+<p>Builders turn around and hold drawings up. Let it be funny. Nothing is graded.</p><p class="quote">“What made that hard?”</p></section>
+<section class="step"><div class="top"><div class="n">4</div><div><h2>Round 2 • Add Respect</h2></div><div class="time">4 min</div></div>
+<p>Swap roles. New Builders turn away. <strong>Builders may ask questions.</strong> Engineers listen, clarify, and answer honestly.</p>
+<button class="action" data-round="r2">Project Round 2 + 3:00 Timer</button></section>
+<section class="step"><div class="top"><div class="n">5</div><div><h2>Make the Connection</h2></div><div class="time">4–5 min</div></div>
+<p class="quote">“Which round worked better? Why?”</p>
+<p>Land on communication, listening, questions, and honest answers.</p>
+<p class="quote">“If you don’t understand something, ask. If something goes wrong, tell us. If you make a mistake, own it. If your partner needs help, help them.”</p>
+<p><strong>Trust earns freedom. Respect keeps the room working.</strong></p></section>
+<section class="step"><div class="top"><div class="n">6</div><div><h2>Laptop + Equipment Rule</h2></div><div class="time">4–5 min</div></div>
+<p class="quote">“So what were you actually drawing?”</p><p><strong>The M&amp;M rule:</strong> Treat the equipment like it belongs to someone you respect.</p>
+<ol class="rules"><li>Two hands carrying a laptop.</li><li>Close it before moving.</li><li>Keep it flat and safe while using it.</li><li>If something happens, tell us immediately.</li></ol>
+<p class="quote">“No hiding it. No pretending it didn’t happen. Telling us the truth is part of trust.”</p></section>
+<section class="step"><div class="top"><div class="n">7</div><div><h2>What CIRC Is + Close</h2></div><div class="time">8–10 min</div></div>
+<p>Keep it conversational. Preview a couple things students will make. Message: <strong>Talk • Make • Show.</strong> Try things, communicate, change them, make them better.</p>
+<p class="quote">“CIRC isn’t about getting everything right the first time. It’s about trying something, communicating, changing it, and making it better.”</p>
+<p><strong>Tammy:</strong> “Respect.”<br><strong>Kenny:</strong> “Trust.”<br><strong>Together:</strong> “Welcome to the M&amp;M Duo.”</p>
+<p class="quote">Exit check: “Give us one example of what trust or respect looks like in CIRC.”</p></section>
+<div class="tiny">Before students enter: put <strong>M&amp;M • TRUST + RESPECT</strong> on the board, have paper/pencils ready, and leave this Day 1 panel open. Skip the giant rules slideshow.</div>
+</main></aside>
+<section id="present"><div class="ph"><div class="pt"><small>M&amp;M Challenge</small><span id="title">Round 1</span></div><button class="back" id="back">Back to lesson</button></div>
+<div class="pm"><div class="visual" id="visual"></div><aside class="coach"><h3>Teacher Controls</h3><p id="rule"></p><div id="timer">3:00</div><div class="tb"><button id="start">Start</button><button id="reset">Reset</button></div></aside></div>
+<div class="pf" id="foot"></div></section>
+<script>
+(()=>{const body=document.body,drawer=document.querySelector("#drawer"),present=document.querySelector("#present"),visual=document.querySelector("#visual"),title=document.querySelector("#title"),rule=document.querySelector("#rule"),foot=document.querySelector("#foot"),timer=document.querySelector("#timer"),start=document.querySelector("#start");
+const setOpen=v=>{body.classList.toggle("open",v);if(v)drawer.scrollTop=0};document.querySelector("#open").onclick=()=>setOpen(true);document.querySelector("#close").onclick=()=>setOpen(false);document.querySelector("#shade").onclick=()=>setOpen(false);
+const art={r1:'<svg viewBox="0 0 800 520"><rect x="92" y="72" width="616" height="376" rx="8" fill="none" stroke="#142019" stroke-width="12"/><circle cx="180" cy="155" r="52" fill="none" stroke="#142019" stroke-width="12"/><path d="M400 155 L510 330 L290 330 Z" fill="none" stroke="#142019" stroke-width="12"/><rect x="585" y="320" width="70" height="70" fill="none" stroke="#142019" stroke-width="12"/><line x1="150" y1="390" x2="330" y2="390" stroke="#142019" stroke-width="12"/></svg>',r2:'<svg viewBox="0 0 800 520"><rect x="170" y="72" width="460" height="300" rx="18" fill="none" stroke="#142019" stroke-width="12"/><rect x="200" y="102" width="400" height="235" fill="none" stroke="#142019" stroke-width="8"/><circle cx="400" cy="354" r="7" fill="#142019"/><path d="M135 392 H665 L715 455 H85 Z" fill="none" stroke="#142019" stroke-width="12"/><rect x="335" y="414" width="130" height="22" fill="none" stroke="#142019" stroke-width="6"/></svg>'};
+let sec=180,int=null;const paint=()=>timer.textContent=Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0"),stop=()=>{if(int)clearInterval(int);int=null;start.textContent="Start"},reset=()=>{stop();sec=180;paint()};
+start.onclick=()=>{if(int)return stop();if(sec<=0)sec=180;start.textContent="Pause";int=setInterval(()=>{sec--;paint();if(sec<=0)stop()},1000)};document.querySelector("#reset").onclick=reset;
+document.querySelectorAll("[data-round]").forEach(b=>b.onclick=()=>{const r=b.dataset.round;reset();visual.innerHTML=art[r];if(r==="r1"){title.textContent="Round 1 • Trust Test";rule.textContent="Engineer describes. Builder draws. No questions allowed.";foot.innerHTML="<strong>Builders:</strong> backs to the board. <strong>Engineers:</strong> use words only."}else{title.textContent="Round 2 • Add Respect";rule.textContent="Builder may ask questions. Engineer listens and answers honestly.";foot.innerHTML="<strong>New Builders:</strong> backs to the board. <strong>New Engineers:</strong> listen, clarify, answer."}present.classList.add("show")});
+document.querySelector("#back").onclick=()=>{stop();present.classList.remove("show")};document.onkeydown=e=>{if(e.key==="Escape"){if(present.classList.contains("show")){stop();present.classList.remove("show")}else setOpen(false)}};paint();setOpen(true)})();
+</script></body></html>
