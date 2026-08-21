@@ -3,13 +3,18 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="description" content="The Playbook classroom dashboard for fifth- and sixth-grade CIRC.">
-<title>The Playbook | Day 1</title>
+<title>The Playbook | Day Glance</title>
 <style>
-:root{--bg:#0f1613;--p:#111b17;--l:#ffffff1f;--t:#f4f7f5;--m:#a8b6ae;--g:#53d337}
+:root{--bg:#0f1613;--p:#111b17;--l:#ffffff1f;--t:#f4f7f5;--m:#a8b6ae;--g:#53d337;--glance-offset:112px}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--t);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-#playbook{position:fixed;inset:0;width:100%;height:100%;border:0;background:#faf9f5}
+#playbook{position:fixed;left:0;right:0;bottom:0;top:var(--glance-offset);width:100%;height:calc(100% - var(--glance-offset));border:0;background:#faf9f5}
 #open{position:fixed;right:18px;bottom:18px;z-index:40;border:1px solid #53d33788;background:#0f1613f2;color:#fff;border-radius:999px;padding:11px 15px;font-weight:900;letter-spacing:.06em;cursor:pointer}
 #open b,.eyebrow,.time{color:var(--g)}
+#glance{position:fixed;z-index:45;top:max(8px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);width:min(calc(100% - 18px),1060px);border:1px solid #53d33780;border-radius:15px;background:#0f1613f2;box-shadow:0 10px 32px #0008,0 0 24px #53d3371f;backdrop-filter:blur(14px);overflow:hidden}
+.gh{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px 7px;border-bottom:1px solid #ffffff12}.gtitle{font-size:11px;font-weight:950;letter-spacing:.15em;color:var(--g)}.gstatus{margin-top:2px;font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--m)}.gtools{display:flex;gap:6px;flex:none}
+.gsetup,.gmin,.gaction,.gday{border:1px solid var(--l);background:#17231d;color:#fff;border-radius:9px;font-weight:900;cursor:pointer}.gsetup,.gmin{padding:7px 10px;font-size:10px;letter-spacing:.08em}.gsetup:hover,.gmin:hover,.gaction:hover,.gday:hover{border-color:#53d33788}
+.ggrid{display:grid;grid-template-columns:.7fr 2fr 1fr 2fr;min-height:68px}.gcell{min-width:0;padding:9px 11px;border-right:1px solid #ffffff12}.gcell:last-child{border-right:0}.glabel{display:block;font-size:9px;font-weight:950;letter-spacing:.14em;color:var(--m)}.gvalue{display:block;margin-top:4px;font-size:clamp(15px,2vw,21px);line-height:1.05;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gcell.now .gvalue{color:var(--g)}.gsub{display:block;margin-top:3px;font-size:9px;font-weight:800;color:var(--m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gpanel{display:none;padding:10px 11px 11px;border-top:1px solid #ffffff12;background:#09100cf5}.expanded .gpanel{display:block}.gpanelrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}.gpanel b{display:block;margin-bottom:6px;font-size:9px;letter-spacing:.13em;color:var(--m)}.gdays,.gactions{display:flex;gap:6px;flex-wrap:wrap}.gday{width:39px;height:34px;font-size:11px}.gday.on{border-color:var(--g);background:#53d33720;color:#dcffe5}.gaction{min-height:34px;padding:7px 10px;font-size:10px}.gaction:disabled{opacity:.42;cursor:not-allowed}.gmessage{min-height:14px;margin-top:8px;color:var(--m);font-size:10px;line-height:1.4}.gmessage.bad{color:#ffb0a3}.compact .ggrid,.compact .gpanel,.compact .gsetup{display:none}.compact .gh{border-bottom:0}.compact .gstatus{color:#eaffef}
 #shade{position:fixed;inset:0;z-index:50;background:#0007;opacity:0;pointer-events:none;transition:.2s}
 #drawer{position:fixed;z-index:60;top:0;right:0;bottom:0;width:min(510px,100vw);background:#0f1613fc;border-left:1px solid var(--l);transform:translateX(102%);transition:.2s;display:flex;flex-direction:column}
 body.open #shade{opacity:1;pointer-events:auto}body.open #drawer{transform:none}
@@ -28,11 +33,23 @@ h2{font-size:14px;margin:3px 0}.time{font-size:11px;font-weight:900;padding-top:
 .coach{border:1px solid var(--l);background:#101914;border-radius:18px;padding:16px}.coach h3{color:var(--g);font-size:13px;text-transform:uppercase}.coach p{font-size:13px;line-height:1.5;color:#d8e2dc}
 #timer{font-size:54px;font-weight:950;margin:14px 0;font-variant-numeric:tabular-nums}.tb{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tb button{padding:10px;border-radius:10px;border:1px solid var(--l);background:#18251e;color:#fff;font-weight:850;cursor:pointer}
 .pf{padding:12px 22px 18px;text-align:center;color:#b8c6be;font-size:13px}
-@media(max-width:760px){.pm{grid-template-columns:1fr;overflow:auto}.visual{min-height:48vh}#open{right:12px;bottom:12px}}
+@media(max-width:760px){.pm{grid-template-columns:1fr;overflow:auto}.visual{min-height:48vh}#open{right:12px;bottom:12px}.ggrid{grid-template-columns:.7fr 1.7fr}.gcell:nth-child(2){border-right:0}.gcell:nth-child(-n+2){border-bottom:1px solid #ffffff12}.gvalue{font-size:15px}.gpanelrow{align-items:flex-start;flex-direction:column}.gactions{width:100%}.gaction{flex:1 1 140px}}
 </style>
 </head>
 <body>
 <iframe id="playbook" src="./app.html" title="The Playbook classroom dashboard"></iframe>
+<section id="glance" aria-label="Day Glance">
+  <div class="gh"><div><div class="gtitle">DAY GLANCE</div><div class="gstatus" id="gstatus">PRIVATE SCHEDULE NOT LOADED</div></div><div class="gtools"><button class="gsetup" id="gsetup" aria-expanded="false">SETUP</button><button class="gmin" id="gmin" aria-expanded="true">MINIMIZE</button></div></div>
+  <div class="ggrid" id="ggrid" aria-live="polite"></div>
+  <div class="gpanel" id="gpanel">
+    <div class="gpanelrow">
+      <div><b>ROTATION DAY</b><div class="gdays" id="gdays"></div></div>
+      <div><b>PRIVATE SCHEDULE FILE</b><div class="gactions"><button class="gaction" id="gimport">IMPORT</button><button class="gaction" id="gexport" disabled>EXPORT BACKUP</button></div></div>
+    </div>
+    <input id="gfile" type="file" accept="application/json,.json" hidden>
+    <div class="gmessage" id="gmessage">Import the private Playbook Schedule file once on each device. Nothing in that file is published to GitHub.</div>
+  </div>
+</section>
 <button id="open"><b>DAY 1</b> • M&amp;M CHALLENGE</button><div id="shade"></div>
 <aside id="drawer">
 <header><div class="head"><div><div class="eyebrow">First Day • Day 1</div><h1>The M&amp;M Challenge</h1><div class="sub">Macek + Micco • Trust + Respect</div></div><button class="x" id="close">×</button></div>
@@ -83,9 +100,147 @@ h2{font-size:14px;margin:3px 0}.time{font-size:11px;font-weight:900;padding-top:
 <script>
 (()=>{const body=document.body,drawer=document.querySelector("#drawer"),present=document.querySelector("#present"),visual=document.querySelector("#visual"),title=document.querySelector("#title"),rule=document.querySelector("#rule"),foot=document.querySelector("#foot"),timer=document.querySelector("#timer"),start=document.querySelector("#start");
 const setOpen=v=>{body.classList.toggle("open",v);if(v)drawer.scrollTop=0};document.querySelector("#open").onclick=()=>setOpen(true);document.querySelector("#close").onclick=()=>setOpen(false);document.querySelector("#shade").onclick=()=>setOpen(false);
+/* DAY GLANCE PURE START */
+function teacherTimeToMinutes(raw){
+  const match=String(raw||'').trim().toUpperCase().match(/^(\d{1,2}):([0-5]\d)(?:\s*(AM|PM))?$/);
+  if(!match) return null;
+  let hour=Number(match[1]),minute=Number(match[2]);
+  if(hour<1||hour>12) return null;
+  if(match[3]){
+    if(hour===12) hour=0;
+    if(match[3]==='PM') hour+=12;
+  }else if(hour===12) hour=12;
+  else if(hour>=1&&hour<=6) hour+=12;
+  return hour*60+minute;
+}
+function formatSchoolMinutes(value){
+  if(!Number.isFinite(value)) return '';
+  const hour24=Math.floor(value/60)%24,minute=value%60,period=hour24>=12?'PM':'AM';
+  const hour=hour24%12||12;
+  return `${hour}:${String(minute).padStart(2,'0')} ${period}`;
+}
+function parseTeacherClockRange(raw){
+  const parts=String(raw||'').split('-').map(value=>value.trim());
+  if(parts.length!==2) return null;
+  const start=teacherTimeToMinutes(parts[0]),end=teacherTimeToMinutes(parts[1]);
+  if(start===null||end===null||end<=start) return null;
+  return {start,end};
+}
+function teacherClockView(day,minute){
+  const blocks=(day&&Array.isArray(day.events)?day.events:[]).map(event=>{
+    const range=parseTeacherClockRange(event.time);
+    return range?{event,start:range.start,end:range.end}:null;
+  }).filter(Boolean).sort((a,b)=>a.start-b.start);
+  const base={day:Number(day&&day.day)||1,dayLabel:String(day&&day.label||'DAY 1')};
+  if(!blocks.length) return {...base,phase:'empty',now:'No schedule loaded',ends:'No time',next:'Open setup',nextTime:'',type:'support'};
+  const active=blocks.find(block=>minute>=block.start&&minute<block.end);
+  if(active){
+    const next=blocks.find(block=>block.start>=active.end);
+    return {...base,phase:'active',now:active.event.label,ends:formatSchoolMinutes(active.end),next:next?next.event.label:'Choose tomorrow',nextTime:next?formatSchoolMinutes(next.start):'',type:active.event.type};
+  }
+  const next=blocks.find(block=>block.start>minute);
+  if(next){
+    const before=minute<blocks[0].start;
+    return {...base,phase:before?'before':'gap',now:before?'Before first block':'Between blocks',ends:formatSchoolMinutes(next.start),next:next.event.label,nextTime:formatSchoolMinutes(next.start),type:'support'};
+  }
+  return {...base,phase:'complete',now:'Day complete',ends:'Done',next:'Choose tomorrow',nextTime:'',type:'support'};
+}
+function validateTeacherScheduleBundle(raw){
+  if(!raw||typeof raw!=='object'||raw.format!=='playbook.teacherPlan.v1') return {ok:false,error:'This is not a Playbook private schedule file.'};
+  if(!raw.plan||!Array.isArray(raw.plan.days)||raw.plan.days.length!==5) return {ok:false,error:'The file must contain all five rotation days.'};
+  const allowed=['teach','prep','lunch','support','duty'],seen=new Set(),days=[];
+  for(const supplied of raw.plan.days){
+    const day=Number(supplied&&supplied.day);
+    if(!Number.isInteger(day)||day<1||day>5||seen.has(day)||!Array.isArray(supplied.events)) return {ok:false,error:'Each rotation day must appear exactly once.'};
+    seen.add(day);
+    const events=[];
+    for(const item of supplied.events){
+      const time=String(item&&item.time||'').trim(),type=String(item&&item.type||'').toLowerCase(),label=String(item&&item.label||'').trim(),range=parseTeacherClockRange(time);
+      if(!range||!allowed.includes(type)||!label||label.length>200) return {ok:false,error:`Day ${day} contains an invalid block.`};
+      events.push({time,type,label,start:range.start,end:range.end});
+    }
+    events.sort((a,b)=>a.start-b.start);
+    for(let index=1;index<events.length;index++) if(events[index].start<events[index-1].end) return {ok:false,error:`Day ${day} contains overlapping blocks.`};
+    days.push({day,label:`DAY ${day}`,events:events.map(({time,type,label})=>({time,type,label}))});
+  }
+  days.sort((a,b)=>a.day-b.day);
+  const preferredDay=Number(raw.preferredDay);
+  return {ok:true,preferredDay:Number.isInteger(preferredDay)&&preferredDay>=1&&preferredDay<=5?preferredDay:1,plan:{status:raw.plan.status==='official'?'official':'provisional',days}};
+}
+function readPlaybookDay(state,today){
+  if(!state||typeof state!=='object'||Array.isArray(state)) return null;
+  const override=state.dayOverride,day=Number(override&&override.day);
+  return override&&override.date===today&&Number.isInteger(day)&&day>=1&&day<=5?day:null;
+}
+function withPlaybookDay(state,day,today){
+  const value=Number(day);
+  if(!Number.isInteger(value)||value<1||value>5||!/^\d{4}-\d{2}-\d{2}$/.test(String(today||''))) return null;
+  const source=state&&typeof state==='object'&&!Array.isArray(state)?state:{};
+  return {...source,dayOverride:{day:value,date:today}};
+}
+/* DAY GLANCE PURE END */
+const GLANCE_PLAN_KEY='playbook.privateTeacherPlan.v1',GLANCE_DAY_KEY='playbook.teacherDay.v1',PLAYBOOK_STATE_KEY='playbook_v2';
+const playbook=document.querySelector('#playbook'),glance=document.querySelector('#glance'),ggrid=document.querySelector('#ggrid'),gstatus=document.querySelector('#gstatus'),gdays=document.querySelector('#gdays'),gmessage=document.querySelector('#gmessage'),gexport=document.querySelector('#gexport'),gfile=document.querySelector('#gfile'),gsetup=document.querySelector('#gsetup'),gmin=document.querySelector('#gmin');
+let glancePlan=null,glanceDay=Number(localStorage.getItem(GLANCE_DAY_KEY))||1;
+if(!Number.isInteger(glanceDay)||glanceDay<1||glanceDay>5)glanceDay=1;
+try{const saved=JSON.parse(localStorage.getItem(GLANCE_PLAN_KEY)||'null'),checked=validateTeacherScheduleBundle(saved);if(checked.ok)glancePlan=checked.plan}catch(e){}
+function localDateISO(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`}
+function loadPlaybookState(){try{const value=JSON.parse(localStorage.getItem(PLAYBOOK_STATE_KEY)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch(e){return {}}}
+const glanceEsc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+const glanceField=(label,value,sub='',kind='')=>`<div class="gcell ${kind}"><span class="glabel">${glanceEsc(label)}</span><span class="gvalue">${glanceEsc(value)}</span>${sub?`<span class="gsub">${glanceEsc(sub)}</span>`:''}</div>`;
+function currentSchoolMinute(){const now=new Date();return now.getHours()*60+now.getMinutes()}
+function reloadPlaybook(){playbook.setAttribute('src',playbook.getAttribute('src'))}
+function setAuthoritativeDay(day,reload=true){
+  const next=withPlaybookDay(loadPlaybookState(),day,localDateISO());
+  if(!next)return;
+  glanceDay=Number(day);localStorage.setItem(GLANCE_DAY_KEY,String(glanceDay));localStorage.setItem(PLAYBOOK_STATE_KEY,JSON.stringify(next));renderGlanceDays();renderGlance();
+  if(reload)reloadPlaybook();
+}
+function renderGlanceDays(){gdays.innerHTML=[1,2,3,4,5].map(day=>`<button class="gday ${day===glanceDay?'on':''}" data-day="${day}" aria-pressed="${day===glanceDay}">${day}</button>`).join('');gdays.querySelectorAll('[data-day]').forEach(button=>button.onclick=()=>setAuthoritativeDay(Number(button.dataset.day)))}
+function renderGlance(){
+  gexport.disabled=!glancePlan;
+  if(!glancePlan){gstatus.textContent='PRIVATE SCHEDULE NOT LOADED';ggrid.innerHTML=glanceField('DAY','NOT SET')+glanceField('NOW','Import private schedule','','now')+glanceField('ENDS','NO TIME')+glanceField('NEXT','Open setup');return}
+  const day=glancePlan.days.find(item=>item.day===glanceDay)||glancePlan.days[0],view=teacherClockView(day,currentSchoolMinute());
+  gstatus.textContent=glance.classList.contains('compact')?`DAY ${view.day} | ${view.now} | ENDS ${view.ends}`:'UPDATES WITH THE CLOCK ON THIS DEVICE';
+  ggrid.innerHTML=glanceField('DAY',String(view.day))+glanceField('NOW',view.now,view.phase==='active'?view.type.toUpperCase():view.phase.toUpperCase(),'now')+glanceField('ENDS',view.ends)+glanceField('NEXT',view.next,view.nextTime);
+}
+function syncPlaybookOffset(){requestAnimationFrame(()=>document.documentElement.style.setProperty('--glance-offset',`${Math.ceil(glance.getBoundingClientRect().bottom+8)}px`))}
+function setGlanceExpanded(value){glance.classList.toggle('expanded',value);gsetup.setAttribute('aria-expanded',String(value));gsetup.textContent=value?'CLOSE':'SETUP';syncPlaybookOffset()}
+function setGlanceCompact(value){if(value)setGlanceExpanded(false);glance.classList.toggle('compact',value);gmin.setAttribute('aria-expanded',String(!value));gmin.textContent=value?'SHOW':'MINIMIZE';renderGlance();syncPlaybookOffset()}
+gsetup.onclick=()=>setGlanceExpanded(!glance.classList.contains('expanded'));
+gmin.onclick=()=>setGlanceCompact(!glance.classList.contains('compact'));
+document.querySelector('#gimport').onclick=()=>gfile.click();
+gfile.onchange=async()=>{
+  const file=gfile.files&&gfile.files[0];
+  if(!file)return;
+  gmessage.classList.remove('bad');
+  try{
+    if(file.size>250000)throw new Error('That schedule file is unexpectedly large.');
+    const checked=validateTeacherScheduleBundle(JSON.parse(await file.text()));
+    if(!checked.ok)throw new Error(checked.error);
+    if(!window.confirm('Replace the private schedule saved on this device?'))return;
+    const saved={format:'playbook.teacherPlan.v1',preferredDay:checked.preferredDay,plan:checked.plan};
+    localStorage.setItem(GLANCE_PLAN_KEY,JSON.stringify(saved));glancePlan=checked.plan;gmessage.textContent='Private schedule imported on this device.';setAuthoritativeDay(checked.preferredDay);setGlanceExpanded(false);
+  }catch(error){gmessage.textContent=error&&error.message?error.message:'The schedule could not be imported.';gmessage.classList.add('bad')}
+  finally{gfile.value=''}
+};
+gexport.onclick=()=>{
+  if(!glancePlan)return;
+  const payload=JSON.stringify({format:'playbook.teacherPlan.v1',preferredDay:glanceDay,plan:glancePlan},null,2),blob=new Blob([payload],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+  link.href=url;link.download='Playbook Schedule.json';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+const appDay=readPlaybookDay(loadPlaybookState(),localDateISO());
+if(appDay)glanceDay=appDay;
+const needsDaySync=appDay!==glanceDay;
+if(!glancePlan)setGlanceExpanded(true);renderGlanceDays();renderGlance();syncPlaybookOffset();
+if(needsDaySync)setAuthoritativeDay(glanceDay);
+if('ResizeObserver'in window)new ResizeObserver(syncPlaybookOffset).observe(glance);
+window.addEventListener('resize',syncPlaybookOffset);
+window.addEventListener('storage',event=>{if(event.key!==PLAYBOOK_STATE_KEY)return;const day=readPlaybookDay(loadPlaybookState(),localDateISO());if(day&&day!==glanceDay){glanceDay=day;localStorage.setItem(GLANCE_DAY_KEY,String(day));renderGlanceDays();renderGlance()}});
+setInterval(renderGlance,15000);
 const art={r1:'<svg viewBox="0 0 800 520"><rect x="92" y="72" width="616" height="376" rx="8" fill="none" stroke="#142019" stroke-width="12"/><circle cx="180" cy="155" r="52" fill="none" stroke="#142019" stroke-width="12"/><path d="M400 155 L510 330 L290 330 Z" fill="none" stroke="#142019" stroke-width="12"/><rect x="585" y="320" width="70" height="70" fill="none" stroke="#142019" stroke-width="12"/><line x1="150" y1="390" x2="330" y2="390" stroke="#142019" stroke-width="12"/></svg>',r2:'<svg viewBox="0 0 800 520"><rect x="170" y="72" width="460" height="300" rx="18" fill="none" stroke="#142019" stroke-width="12"/><rect x="200" y="102" width="400" height="235" fill="none" stroke="#142019" stroke-width="8"/><circle cx="400" cy="354" r="7" fill="#142019"/><path d="M135 392 H665 L715 455 H85 Z" fill="none" stroke="#142019" stroke-width="12"/><rect x="335" y="414" width="130" height="22" fill="none" stroke="#142019" stroke-width="6"/></svg>'};
 let sec=180,int=null;const paint=()=>timer.textContent=Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0"),stop=()=>{if(int)clearInterval(int);int=null;start.textContent="Start"},reset=()=>{stop();sec=180;paint()};
 start.onclick=()=>{if(int)return stop();if(sec<=0)sec=180;start.textContent="Pause";int=setInterval(()=>{sec--;paint();if(sec<=0)stop()},1000)};document.querySelector("#reset").onclick=reset;
 document.querySelectorAll("[data-round]").forEach(b=>b.onclick=()=>{const r=b.dataset.round;reset();visual.innerHTML=art[r];if(r==="r1"){title.textContent="Round 1 • Trust Test";rule.textContent="Engineer describes. Builder draws. No questions allowed.";foot.innerHTML="<strong>Builders:</strong> backs to the board. <strong>Engineers:</strong> use words only."}else{title.textContent="Round 2 • Add Respect";rule.textContent="Builder may ask questions. Engineer listens and answers honestly.";foot.innerHTML="<strong>New Builders:</strong> backs to the board. <strong>New Engineers:</strong> listen, clarify, answer."}present.classList.add("show")});
-document.querySelector("#back").onclick=()=>{stop();present.classList.remove("show")};document.onkeydown=e=>{if(e.key==="Escape"){if(present.classList.contains("show")){stop();present.classList.remove("show")}else setOpen(false)}};paint();setOpen(true)})();
+document.querySelector("#back").onclick=()=>{stop();present.classList.remove("show")};document.onkeydown=e=>{if(e.key==="Escape"){if(present.classList.contains("show")){stop();present.classList.remove("show")}else if(body.classList.contains('open'))setOpen(false);else if(glance.classList.contains('expanded'))setGlanceExpanded(false)}};paint();setOpen(false)})();
 </script></body></html>
