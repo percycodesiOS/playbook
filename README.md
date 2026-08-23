@@ -8,9 +8,9 @@ GitHub Pages publishes `index.html` from the root of the `main` branch.
 
 ## Day Glance
 
-The Day Glance card shows the selected rotation day, the current block, its ending time, and the next block. It updates from the device clock and can be minimized without covering the Playbook controls. The five-day cycle stays under manual control, and changing the day changes the embedded Playbook day too.
+The Day Glance card shows the current rotation day, the current block, its ending time, and the next block. It updates from the device clock and private school calendar, skips listed no-school dates, and previews the next school day on weekends and closures. The five-day cycle advances automatically. Same-day manual corrections remain available, and **Auto** restores the calendar result.
 
-The Day Glance schedule file is not stored in this public repository. Use **Setup > Import** once in each browser or device to load a private `Playbook Schedule.json` file. The imported schedule remains in that browser's local storage. **Export Backup** downloads the currently loaded private schedule.
+The Day Glance schedule and calendar file is not stored in this public repository. Use **Setup > Import** once in each browser or device to load a private `Playbook Schedule.json` file. The imported data remains in that browser's local storage. **Export Backup** downloads the currently loaded private schedule and calendar. If the district activates a snow makeup day, update and reimport the private file before that date.
 
 Run the clock and import validation tests with:
 

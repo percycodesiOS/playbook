@@ -14,7 +14,7 @@
 .gh{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 11px 7px;border-bottom:1px solid #ffffff12}.gtitle{font-size:11px;font-weight:950;letter-spacing:.15em;color:var(--g)}.gstatus{margin-top:2px;font-size:9px;font-weight:800;letter-spacing:.08em;color:var(--m)}.gtools{display:flex;gap:6px;flex:none}
 .gsetup,.gmin,.gaction,.gday{border:1px solid var(--l);background:#17231d;color:#fff;border-radius:9px;font-weight:900;cursor:pointer}.gsetup,.gmin{padding:7px 10px;font-size:10px;letter-spacing:.08em}.gsetup:hover,.gmin:hover,.gaction:hover,.gday:hover{border-color:#53d33788}
 .ggrid{display:grid;grid-template-columns:.7fr 2fr 1fr 2fr;min-height:68px}.gcell{min-width:0;padding:9px 11px;border-right:1px solid #ffffff12}.gcell:last-child{border-right:0}.glabel{display:block;font-size:9px;font-weight:950;letter-spacing:.14em;color:var(--m)}.gvalue{display:block;margin-top:4px;font-size:clamp(15px,2vw,21px);line-height:1.05;font-weight:950;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gcell.now .gvalue{color:var(--g)}.gsub{display:block;margin-top:3px;font-size:9px;font-weight:800;color:var(--m);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gpanel{display:none;padding:10px 11px 11px;border-top:1px solid #ffffff12;background:#09100cf5}.expanded .gpanel{display:block}.gpanelrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}.gpanel b{display:block;margin-bottom:6px;font-size:9px;letter-spacing:.13em;color:var(--m)}.gdays,.gactions{display:flex;gap:6px;flex-wrap:wrap}.gday{width:39px;height:34px;font-size:11px}.gday.on{border-color:var(--g);background:#53d33720;color:#dcffe5}.gaction{min-height:34px;padding:7px 10px;font-size:10px}.gaction:disabled{opacity:.42;cursor:not-allowed}.gmessage{min-height:14px;margin-top:8px;color:var(--m);font-size:10px;line-height:1.4}.gmessage.bad{color:#ffb0a3}.compact .ggrid,.compact .gpanel,.compact .gsetup{display:none}.compact .gh{border-bottom:0}.compact .gstatus{color:#eaffef}
+.gpanel{display:none;padding:10px 11px 11px;border-top:1px solid #ffffff12;background:#09100cf5}.expanded .gpanel{display:block}.gpanelrow{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}.gpanel b{display:block;margin-bottom:6px;font-size:9px;letter-spacing:.13em;color:var(--m)}.gdays,.gactions{display:flex;gap:6px;flex-wrap:wrap}.gday{width:39px;height:34px;font-size:11px}.gday.gauto{width:auto;padding:0 10px}.gday.on{border-color:var(--g);background:#53d33720;color:#dcffe5}.gday:disabled,.gaction:disabled{opacity:.42;cursor:not-allowed}.gaction{min-height:34px;padding:7px 10px;font-size:10px}.gmessage{min-height:14px;margin-top:8px;color:var(--m);font-size:10px;line-height:1.4}.gmessage.bad{color:#ffb0a3}.compact .ggrid,.compact .gpanel,.compact .gsetup{display:none}.compact .gh{border-bottom:0}.compact .gstatus{color:#eaffef}
 #shade{position:fixed;inset:0;z-index:50;background:#0007;opacity:0;pointer-events:none;transition:.2s}
 #drawer{position:fixed;z-index:60;top:0;right:0;bottom:0;width:min(510px,100vw);background:#0f1613fc;border-left:1px solid var(--l);transform:translateX(102%);transition:.2s;display:flex;flex-direction:column}
 body.open #shade{opacity:1;pointer-events:auto}body.open #drawer{transform:none}
@@ -145,8 +145,37 @@ function teacherClockView(day,minute){
   }
   return {...base,phase:'complete',now:'Day complete',ends:'Done',next:'Choose tomorrow',nextTime:'',type:'support'};
 }
+function teacherISOToUtcDay(raw){
+  const match=String(raw||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if(!match)return null;
+  const year=Number(match[1]),month=Number(match[2]),date=Number(match[3]),value=Date.UTC(year,month-1,date),check=new Date(value);
+  if(check.getUTCFullYear()!==year||check.getUTCMonth()!==month-1||check.getUTCDate()!==date)return null;
+  return Math.floor(value/86400000);
+}
+function teacherUtcDayToISO(value){
+  if(!Number.isInteger(value))return '';
+  return new Date(value*86400000).toISOString().slice(0,10);
+}
+function validateTeacherCalendar(raw){
+  if(!raw||typeof raw!=='object'||Array.isArray(raw))return {ok:false,error:'The private school calendar is missing.'};
+  const anchorDate=String(raw.anchorDate||''),lastDate=String(raw.lastDate||''),anchorDay=Number(raw.anchorDay),anchorValue=teacherISOToUtcDay(anchorDate),lastValue=teacherISOToUtcDay(lastDate);
+  if(anchorValue===null||lastValue===null||lastValue<anchorValue||!Number.isInteger(anchorDay)||anchorDay<1||anchorDay>5)return {ok:false,error:'The private school calendar is invalid.'};
+  if(!Array.isArray(raw.noSchool))return {ok:false,error:'The private school calendar must list no-school dates.'};
+  const seen=new Set(),noSchool=[];
+  for(const item of raw.noSchool){
+    const date=String(item||''),value=teacherISOToUtcDay(date);
+    if(value===null||value<anchorValue||value>lastValue||seen.has(date))return {ok:false,error:'The private school calendar contains an invalid no-school date.'};
+    seen.add(date);noSchool.push(date);
+  }
+  noSchool.sort();
+  const anchorWeekday=new Date(anchorValue*86400000).getUTCDay();
+  if(anchorWeekday===0||anchorWeekday===6||seen.has(anchorDate))return {ok:false,error:'The private school calendar cannot start on a no-school day.'};
+  return {ok:true,calendar:{anchorDate,anchorDay,lastDate,noSchool}};
+}
 function validateTeacherScheduleBundle(raw){
   if(!raw||typeof raw!=='object'||raw.format!=='playbook.teacherPlan.v1') return {ok:false,error:'This is not a Playbook private schedule file.'};
+  const calendarCheck=validateTeacherCalendar(raw.calendar);
+  if(!calendarCheck.ok)return calendarCheck;
   if(!raw.plan||!Array.isArray(raw.plan.days)||raw.plan.days.length!==5) return {ok:false,error:'The file must contain all five rotation days.'};
   const allowed=['teach','prep','lunch','support','duty'],seen=new Set(),days=[];
   for(const supplied of raw.plan.days){
@@ -165,7 +194,7 @@ function validateTeacherScheduleBundle(raw){
   }
   days.sort((a,b)=>a.day-b.day);
   const preferredDay=Number(raw.preferredDay);
-  return {ok:true,preferredDay:Number.isInteger(preferredDay)&&preferredDay>=1&&preferredDay<=5?preferredDay:1,plan:{status:raw.plan.status==='official'?'official':'provisional',days}};
+  return {ok:true,preferredDay:Number.isInteger(preferredDay)&&preferredDay>=1&&preferredDay<=5?preferredDay:1,calendar:calendarCheck.calendar,plan:{status:raw.plan.status==='official'?'official':'provisional',days}};
 }
 function readPlaybookDay(state,today){
   if(!state||typeof state!=='object'||Array.isArray(state)) return null;
@@ -178,32 +207,87 @@ function withPlaybookDay(state,day,today){
   const source=state&&typeof state==='object'&&!Array.isArray(state)?state:{};
   return {...source,dayOverride:{day:value,date:today}};
 }
+function withoutPlaybookDay(state,today){
+  const source=state&&typeof state==='object'&&!Array.isArray(state)?state:{};
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(String(today||''))||!source.dayOverride||source.dayOverride.date!==today)return {...source};
+  const {dayOverride,...rest}=source;
+  return rest;
+}
+function resolveTeacherDay(calendar,today,state){
+  const checked=validateTeacherCalendar(calendar),todayValue=teacherISOToUtcDay(today);
+  if(!checked.ok||todayValue===null)return null;
+  const anchorValue=teacherISOToUtcDay(checked.calendar.anchorDate),lastValue=teacherISOToUtcDay(checked.calendar.lastDate),noSchool=new Set(checked.calendar.noSchool);
+  if(todayValue>lastValue)return null;
+  const isSchool=value=>{const weekday=new Date(value*86400000).getUTCDay();return weekday!==0&&weekday!==6&&!noSchool.has(teacherUtcDayToISO(value))};
+  let target=Math.max(todayValue,anchorValue);
+  while(target<=lastValue&&!isSchool(target))target++;
+  if(target>lastValue)return null;
+  let schoolDays=0;
+  for(let cursor=anchorValue;cursor<=target;cursor++)if(isSchool(cursor))schoolDays++;
+  const automatic=((checked.calendar.anchorDay-1+schoolDays-1)%5)+1,targetDate=teacherUtcDayToISO(target),manual=targetDate===today?readPlaybookDay(state,today):null;
+  return {day:manual&&manual!==automatic?manual:automatic,date:targetDate,relation:targetDate===today?'today':'next',source:manual&&manual!==automatic?'manual':'calendar'};
+}
 /* DAY GLANCE PURE END */
-const GLANCE_PLAN_KEY='playbook.privateTeacherPlan.v1',GLANCE_DAY_KEY='playbook.teacherDay.v1',PLAYBOOK_STATE_KEY='playbook_v2';
+const GLANCE_PLAN_KEY='playbook.privateTeacherPlan.v1',PLAYBOOK_STATE_KEY='playbook_v2';
 const playbook=document.querySelector('#playbook'),glance=document.querySelector('#glance'),ggrid=document.querySelector('#ggrid'),gstatus=document.querySelector('#gstatus'),gdays=document.querySelector('#gdays'),gmessage=document.querySelector('#gmessage'),gexport=document.querySelector('#gexport'),gfile=document.querySelector('#gfile'),gsetup=document.querySelector('#gsetup'),gmin=document.querySelector('#gmin');
-let glancePlan=null,glanceDay=Number(localStorage.getItem(GLANCE_DAY_KEY))||1;
-if(!Number.isInteger(glanceDay)||glanceDay<1||glanceDay>5)glanceDay=1;
-try{const saved=JSON.parse(localStorage.getItem(GLANCE_PLAN_KEY)||'null'),checked=validateTeacherScheduleBundle(saved);if(checked.ok)glancePlan=checked.plan}catch(e){}
+let glancePlan=null,glanceCalendar=null,glanceResolution=null;
 function localDateISO(date=new Date()){return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`}
 function loadPlaybookState(){try{const value=JSON.parse(localStorage.getItem(PLAYBOOK_STATE_KEY)||'{}');return value&&typeof value==='object'&&!Array.isArray(value)?value:{}}catch(e){return {}}}
+function loadSavedGlanceBundle(){
+  glancePlan=null;glanceCalendar=null;
+  try{const saved=JSON.parse(localStorage.getItem(GLANCE_PLAN_KEY)||'null'),checked=validateTeacherScheduleBundle(saved);if(checked.ok){glancePlan=checked.plan;glanceCalendar=checked.calendar;return true}}catch(e){}
+  return false;
+}
+loadSavedGlanceBundle();
 const glanceEsc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
 const glanceField=(label,value,sub='',kind='')=>`<div class="gcell ${kind}"><span class="glabel">${glanceEsc(label)}</span><span class="gvalue">${glanceEsc(value)}</span>${sub?`<span class="gsub">${glanceEsc(sub)}</span>`:''}</div>`;
+function formatGlanceDate(iso){const value=teacherISOToUtcDay(iso);return value===null?'':new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(value*86400000)).toUpperCase()}
 function currentSchoolMinute(){const now=new Date();return now.getHours()*60+now.getMinutes()}
 function reloadPlaybook(){playbook.setAttribute('src',playbook.getAttribute('src'))}
-function setAuthoritativeDay(day,reload=true){
+function resolveGlance(){return glanceCalendar?resolveTeacherDay(glanceCalendar,localDateISO(),loadPlaybookState()):null}
+function writePlaybookDay(day,reload=true){
   const next=withPlaybookDay(loadPlaybookState(),day,localDateISO());
-  if(!next)return;
-  glanceDay=Number(day);localStorage.setItem(GLANCE_DAY_KEY,String(glanceDay));localStorage.setItem(PLAYBOOK_STATE_KEY,JSON.stringify(next));renderGlanceDays();renderGlance();
+  if(!next)return false;
+  localStorage.setItem(PLAYBOOK_STATE_KEY,JSON.stringify(next));refreshGlance();
   if(reload)reloadPlaybook();
+  return true;
 }
-function renderGlanceDays(){gdays.innerHTML=[1,2,3,4,5].map(day=>`<button class="gday ${day===glanceDay?'on':''}" data-day="${day}" aria-pressed="${day===glanceDay}">${day}</button>`).join('');gdays.querySelectorAll('[data-day]').forEach(button=>button.onclick=()=>setAuthoritativeDay(Number(button.dataset.day)))}
+function setAuthoritativeDay(day){
+  const automatic=glanceCalendar?resolveTeacherDay(glanceCalendar,localDateISO(),{}):null;
+  if(!automatic||automatic.relation!=='today'){gmessage.textContent='Manual day changes are available on school days. The next school day is already selected.';return}
+  writePlaybookDay(day);
+}
+function setAutomaticDay(reload=true){
+  const automatic=glanceCalendar?resolveTeacherDay(glanceCalendar,localDateISO(),{}):null;
+  if(!automatic)return false;
+  if(automatic.relation==='today')return writePlaybookDay(automatic.day,reload);
+  const current=loadPlaybookState(),next=withoutPlaybookDay(current,localDateISO());
+  if(JSON.stringify(next)!==JSON.stringify(current))localStorage.setItem(PLAYBOOK_STATE_KEY,JSON.stringify(next));
+  refreshGlance();if(reload)reloadPlaybook();return true;
+}
+function renderGlanceDays(){
+  glanceResolution=resolveGlance();
+  const allowManual=!!glanceResolution&&glanceResolution.relation==='today',selected=glanceResolution?glanceResolution.day:0,automatic=glanceResolution&&glanceResolution.source==='calendar';
+  gdays.innerHTML=`<button class="gday gauto ${automatic?'on':''}" data-auto aria-pressed="${automatic}" ${allowManual?'':'disabled'}>AUTO</button>`+[1,2,3,4,5].map(day=>`<button class="gday ${day===selected?'on':''}" data-day="${day}" aria-pressed="${day===selected}" ${allowManual?'':'disabled'}>${day}</button>`).join('');
+  const autoButton=gdays.querySelector('[data-auto]');if(autoButton)autoButton.onclick=()=>setAutomaticDay();
+  gdays.querySelectorAll('[data-day]').forEach(button=>button.onclick=()=>setAuthoritativeDay(Number(button.dataset.day)));
+}
 function renderGlance(){
-  gexport.disabled=!glancePlan;
-  if(!glancePlan){gstatus.textContent='PRIVATE SCHEDULE NOT LOADED';ggrid.innerHTML=glanceField('DAY','NOT SET')+glanceField('NOW','Import private schedule','','now')+glanceField('ENDS','NO TIME')+glanceField('NEXT','Open setup');return}
-  const day=glancePlan.days.find(item=>item.day===glanceDay)||glancePlan.days[0],view=teacherClockView(day,currentSchoolMinute());
-  gstatus.textContent=glance.classList.contains('compact')?`DAY ${view.day} | ${view.now} | ENDS ${view.ends}`:'UPDATES WITH THE CLOCK ON THIS DEVICE';
-  ggrid.innerHTML=glanceField('DAY',String(view.day))+glanceField('NOW',view.now,view.phase==='active'?view.type.toUpperCase():view.phase.toUpperCase(),'now')+glanceField('ENDS',view.ends)+glanceField('NEXT',view.next,view.nextTime);
+  gexport.disabled=!glancePlan;glanceResolution=resolveGlance();
+  if(!glancePlan){gstatus.textContent='PRIVATE SCHEDULE NEEDS IMPORT';ggrid.innerHTML=glanceField('DAY','NOT SET')+glanceField('NOW','Import updated schedule','','now')+glanceField('ENDS','NO TIME')+glanceField('NEXT','Open setup');return}
+  if(!glanceResolution){gstatus.textContent='OFFICIAL CALENDAR COMPLETE';ggrid.innerHTML=glanceField('DAY','DONE')+glanceField('STATUS','School year complete','','now')+glanceField('ENDS','DONE')+glanceField('NEXT','No scheduled day');return}
+  const day=glancePlan.days.find(item=>item.day===glanceResolution.day)||glancePlan.days[0],dateLabel=formatGlanceDate(glanceResolution.date);
+  if(glanceResolution.relation==='next'){
+    const first=day.events[0],range=first?parseTeacherClockRange(first.time):null,start=range?formatSchoolMinutes(range.start):'';
+    gstatus.textContent=glance.classList.contains('compact')?`NEXT SCHOOL DAY | ${dateLabel} | DAY ${day.day}`:'NEXT SCHOOL DAY FROM PRIVATE CALENDAR';
+    ggrid.innerHTML=glanceField('DAY',String(day.day),dateLabel)+glanceField('STATUS','Next school day',dateLabel,'now')+glanceField('STARTS',start||'No time')+glanceField('FIRST',first?first.label:'No block',start);
+    return;
+  }
+  const view=teacherClockView(day,currentSchoolMinute()),manual=glanceResolution.source==='manual';
+  gstatus.textContent=glance.classList.contains('compact')?`DAY ${view.day} | ${view.now} | ENDS ${view.ends}`:(manual?'MANUAL DAY OVERRIDE | TAP AUTO TO RESET':'AUTOMATIC FROM PRIVATE SCHOOL CALENDAR');
+  ggrid.innerHTML=glanceField('DAY',String(view.day),dateLabel)+glanceField('NOW',view.now,view.phase==='active'?view.type.toUpperCase():view.phase.toUpperCase(),'now')+glanceField('ENDS',view.ends)+glanceField('NEXT',view.next,view.nextTime);
 }
+function refreshGlance(){renderGlance();renderGlanceDays()}
 function syncPlaybookOffset(){requestAnimationFrame(()=>document.documentElement.style.setProperty('--glance-offset',`${Math.ceil(glance.getBoundingClientRect().bottom+8)}px`))}
 function setGlanceExpanded(value){glance.classList.toggle('expanded',value);gsetup.setAttribute('aria-expanded',String(value));gsetup.textContent=value?'CLOSE':'SETUP';syncPlaybookOffset()}
 function setGlanceCompact(value){if(value)setGlanceExpanded(false);glance.classList.toggle('compact',value);gmin.setAttribute('aria-expanded',String(!value));gmin.textContent=value?'SHOW':'MINIMIZE';renderGlance();syncPlaybookOffset()}
@@ -219,25 +303,38 @@ gfile.onchange=async()=>{
     const checked=validateTeacherScheduleBundle(JSON.parse(await file.text()));
     if(!checked.ok)throw new Error(checked.error);
     if(!window.confirm('Replace the private schedule saved on this device?'))return;
-    const saved={format:'playbook.teacherPlan.v1',preferredDay:checked.preferredDay,plan:checked.plan};
-    localStorage.setItem(GLANCE_PLAN_KEY,JSON.stringify(saved));glancePlan=checked.plan;gmessage.textContent='Private schedule imported on this device.';setAuthoritativeDay(checked.preferredDay);setGlanceExpanded(false);
+    const saved={format:'playbook.teacherPlan.v1',preferredDay:checked.preferredDay,calendar:checked.calendar,plan:checked.plan};
+    localStorage.setItem(GLANCE_PLAN_KEY,JSON.stringify(saved));glancePlan=checked.plan;glanceCalendar=checked.calendar;gmessage.textContent='Private schedule and school calendar imported on this device.';
+    if(!setAutomaticDay(true)){refreshGlance();reloadPlaybook()}
+    setGlanceExpanded(false);
   }catch(error){gmessage.textContent=error&&error.message?error.message:'The schedule could not be imported.';gmessage.classList.add('bad')}
   finally{gfile.value=''}
 };
 gexport.onclick=()=>{
-  if(!glancePlan)return;
-  const payload=JSON.stringify({format:'playbook.teacherPlan.v1',preferredDay:glanceDay,plan:glancePlan},null,2),blob=new Blob([payload],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+  if(!glancePlan||!glanceCalendar)return;
+  const payload=JSON.stringify({format:'playbook.teacherPlan.v1',preferredDay:glanceResolution?glanceResolution.day:1,calendar:glanceCalendar,plan:glancePlan},null,2),blob=new Blob([payload],{type:'application/json'}),url=URL.createObjectURL(blob),link=document.createElement('a');
   link.href=url;link.download='Playbook Schedule.json';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 };
-const appDay=readPlaybookDay(loadPlaybookState(),localDateISO());
-if(appDay)glanceDay=appDay;
-const needsDaySync=appDay!==glanceDay;
-if(!glancePlan)setGlanceExpanded(true);renderGlanceDays();renderGlance();syncPlaybookOffset();
-if(needsDaySync)setAuthoritativeDay(glanceDay);
+if(!glancePlan)setGlanceExpanded(true);refreshGlance();syncPlaybookOffset();
+if(glancePlan&&glanceResolution&&((glanceResolution.relation==='today'&&!readPlaybookDay(loadPlaybookState(),localDateISO()))||(glanceResolution.relation==='next'&&readPlaybookDay(loadPlaybookState(),localDateISO()))))setAutomaticDay(true);
 if('ResizeObserver'in window)new ResizeObserver(syncPlaybookOffset).observe(glance);
 window.addEventListener('resize',syncPlaybookOffset);
-window.addEventListener('storage',event=>{if(event.key!==PLAYBOOK_STATE_KEY)return;const day=readPlaybookDay(loadPlaybookState(),localDateISO());if(day&&day!==glanceDay){glanceDay=day;localStorage.setItem(GLANCE_DAY_KEY,String(day));renderGlanceDays();renderGlance()}});
-setInterval(renderGlance,15000);
+window.addEventListener('storage',event=>{
+  if(event.key!==PLAYBOOK_STATE_KEY&&event.key!==GLANCE_PLAN_KEY)return;
+  if(event.key===GLANCE_PLAN_KEY){loadSavedGlanceBundle();refreshGlance();return}
+  const automatic=glanceCalendar?resolveTeacherDay(glanceCalendar,localDateISO(),{}):null;
+  if(event.key===PLAYBOOK_STATE_KEY&&automatic&&automatic.relation==='next'&&readPlaybookDay(loadPlaybookState(),localDateISO()))setAutomaticDay(true);else refreshGlance();
+});
+let activeLocalDate=localDateISO();
+function tickGlance(){
+  const today=localDateISO();
+  if(today!==activeLocalDate){activeLocalDate=today;if(!setAutomaticDay(true)){refreshGlance();reloadPlaybook()}return}
+  const automatic=glanceCalendar?resolveTeacherDay(glanceCalendar,today,{}):null;
+  if(automatic&&automatic.relation==='next'&&readPlaybookDay(loadPlaybookState(),today)){setAutomaticDay(true);return}
+  refreshGlance();
+}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)tickGlance()});
+setInterval(tickGlance,15000);
 const art={r1:'<svg viewBox="0 0 800 520"><rect x="92" y="72" width="616" height="376" rx="8" fill="none" stroke="#142019" stroke-width="12"/><circle cx="180" cy="155" r="52" fill="none" stroke="#142019" stroke-width="12"/><path d="M400 155 L510 330 L290 330 Z" fill="none" stroke="#142019" stroke-width="12"/><rect x="585" y="320" width="70" height="70" fill="none" stroke="#142019" stroke-width="12"/><line x1="150" y1="390" x2="330" y2="390" stroke="#142019" stroke-width="12"/></svg>',r2:'<svg viewBox="0 0 800 520"><rect x="170" y="72" width="460" height="300" rx="18" fill="none" stroke="#142019" stroke-width="12"/><rect x="200" y="102" width="400" height="235" fill="none" stroke="#142019" stroke-width="8"/><circle cx="400" cy="354" r="7" fill="#142019"/><path d="M135 392 H665 L715 455 H85 Z" fill="none" stroke="#142019" stroke-width="12"/><rect x="335" y="414" width="130" height="22" fill="none" stroke="#142019" stroke-width="6"/></svg>'};
 let sec=180,int=null;const paint=()=>timer.textContent=Math.floor(sec/60)+":"+String(sec%60).padStart(2,"0"),stop=()=>{if(int)clearInterval(int);int=null;start.textContent="Start"},reset=()=>{stop();sec=180;paint()};
 start.onclick=()=>{if(int)return stop();if(sec<=0)sec=180;start.textContent="Pause";int=setInterval(()=>{sec--;paint();if(sec<=0)stop()},1000)};document.querySelector("#reset").onclick=reset;

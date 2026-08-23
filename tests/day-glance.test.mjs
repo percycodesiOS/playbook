@@ -12,18 +12,24 @@ const load = new Function(`${match[1]}; return {
   formatSchoolMinutes,
   parseTeacherClockRange,
   teacherClockView,
+  validateTeacherCalendar,
   validateTeacherScheduleBundle,
+  resolveTeacherDay,
   readPlaybookDay,
-  withPlaybookDay
+  withPlaybookDay,
+  withoutPlaybookDay
 };`);
 const {
   teacherTimeToMinutes,
   formatSchoolMinutes,
   parseTeacherClockRange,
   teacherClockView,
+  validateTeacherCalendar,
   validateTeacherScheduleBundle,
+  resolveTeacherDay,
   readPlaybookDay,
-  withPlaybookDay
+  withPlaybookDay,
+  withoutPlaybookDay
 } = load();
 
 const day = {
@@ -75,6 +81,12 @@ assert.deepEqual(teacherClockView(day, 940), {
 const validBundle = {
   format: 'playbook.teacherPlan.v1',
   preferredDay: 2,
+  calendar: {
+    anchorDate: '2026-08-20',
+    anchorDay: 1,
+    lastDate: '2027-06-04',
+    noSchool: ['2026-09-07']
+  },
   plan: {
     status: 'official',
     days: [
@@ -90,6 +102,11 @@ const checked = validateTeacherScheduleBundle(validBundle);
 assert.equal(checked.ok, true, 'the documented five-day bundle must import');
 assert.equal(checked.preferredDay, 2);
 assert.equal(checked.plan.days[1].events[0].label, 'Class A');
+assert.deepEqual(checked.calendar, validBundle.calendar,
+  'the private school calendar must survive validation');
+
+assert.equal(validateTeacherScheduleBundle({ ...validBundle, calendar: undefined }).ok, false,
+  'a schedule without its private school calendar must be reimported');
 
 assert.equal(validateTeacherScheduleBundle({ ...validBundle, format: 'wrong' }).ok, false,
   'an unrelated JSON file must not overwrite the saved schedule');
@@ -103,6 +120,45 @@ const overlapping = structuredClone(validBundle);
 overlapping.plan.days[1].events.push({ time: '9:30-10:00', type: 'support', label: 'Overlap' });
 assert.equal(validateTeacherScheduleBundle(overlapping).ok, false,
   'overlapping blocks must stop the entire import');
+
+assert.deepEqual(validateTeacherCalendar(validBundle.calendar), {
+  ok: true,
+  calendar: validBundle.calendar
+}, 'the official calendar shape must validate without changing its dates');
+
+assert.equal(validateTeacherCalendar({ ...validBundle.calendar, anchorDate: '2026-02-30' }).ok, false,
+  'a calendar with an impossible date must be rejected');
+assert.equal(validateTeacherCalendar({ ...validBundle.calendar, anchorDate: '2026-08-22' }).ok, false,
+  'a calendar cannot anchor the cycle on a weekend');
+assert.equal(validateTeacherCalendar({ ...validBundle.calendar, noSchool: ['2026-08-20'] }).ok, false,
+  'the cycle anchor cannot also be a no-school day');
+assert.equal(validateTeacherCalendar({ ...validBundle.calendar, noSchool: ['2026-09-07', '2026-09-07'] }).ok, false,
+  'duplicate no-school dates must be rejected instead of counted twice');
+
+assert.deepEqual(resolveTeacherDay(validBundle.calendar, '2026-08-20', {}), {
+  day: 1, date: '2026-08-20', relation: 'today', source: 'calendar'
+}, 'the first student day must resolve to Day 1');
+assert.deepEqual(resolveTeacherDay(validBundle.calendar, '2026-08-21', {}), {
+  day: 2, date: '2026-08-21', relation: 'today', source: 'calendar'
+}, 'Friday August 21 must resolve to Day 2');
+assert.deepEqual(resolveTeacherDay(validBundle.calendar, '2026-08-22', {
+  dayOverride: { day: 2, date: '2026-08-21' }
+}), {
+  day: 3, date: '2026-08-24', relation: 'next', source: 'calendar'
+}, 'a stale Friday choice must not overwrite the next school day on Saturday');
+assert.deepEqual(resolveTeacherDay(validBundle.calendar, '2026-08-24', {}), {
+  day: 3, date: '2026-08-24', relation: 'today', source: 'calendar'
+}, 'Monday August 24 must resolve to Day 3');
+assert.deepEqual(resolveTeacherDay(validBundle.calendar, '2026-08-24', {
+  dayOverride: { day: 5, date: '2026-08-24' }
+}), {
+  day: 5, date: '2026-08-24', relation: 'today', source: 'manual'
+}, 'a same-date manual correction must remain available');
+assert.deepEqual(resolveTeacherDay(validBundle.calendar, '2026-09-07', {}), {
+  day: 3, date: '2026-09-08', relation: 'next', source: 'calendar'
+}, 'Labor Day must be skipped without advancing the five-day rotation');
+assert.equal(resolveTeacherDay(validBundle.calendar, '2027-06-05', {}), null,
+  'the app must not invent rotation days after the official calendar ends');
 
 const appState = {
   pointers: { teacher: 4 },
@@ -126,5 +182,13 @@ assert.deepEqual(changedState.notes, appState.notes,
   'changing the active day must preserve Playbook notes');
 assert.equal(withPlaybookDay(appState, 0, '2026-08-20'), null,
   'an invalid day must not produce a Playbook state update');
+
+const clearedState = withoutPlaybookDay(appState, '2026-08-20');
+assert.equal('dayOverride' in clearedState, false,
+  'a non-school day must be able to clear a same-date app override');
+assert.deepEqual(clearedState.pointers, appState.pointers,
+  'clearing a day override must preserve Playbook progress');
+assert.deepEqual(withoutPlaybookDay(appState, '2026-08-21'), appState,
+  'clearing today must not remove a differently dated override');
 
 console.log('Day Glance tests passed');
