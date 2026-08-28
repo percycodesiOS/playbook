@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CIRC HQ • The Playbook</title>
+<style>
+:root{--bg:#05080b;--panel:#0b1118;--panel2:#0e1822;--line:#163243;--text:#e8f7ff;--muted:#8aa7b7;--cyan:#00e5ff;--blue:#2196ff;--good:#4dffb8;--warn:#ffd166}
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at top right,#092234 0,#05080b 38%);color:var(--text);font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{position:sticky;top:0;z-index:3;background:rgba(5,8,11,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:18px 22px}
+.brand{display:flex;justify-content:space-between;align-items:end;gap:14px}.brand h1{margin:0;font-size:26px;letter-spacing:.05em}.brand h1 span{color:var(--cyan)}.brand small{color:var(--muted)}
+main{max-width:1180px;margin:auto;padding:22px;display:grid;gap:18px}
+.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:18px}
+.card{background:linear-gradient(180deg,rgba(14,24,34,.96),rgba(8,14,20,.96));border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:0 14px 34px rgba(0,0,0,.28)}
+h2,h3{margin:0 0 12px} h2{font-size:18px;color:var(--cyan)} h3{font-size:15px}
+.kicker{color:var(--cyan);font-size:12px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.big{font-size:42px;font-weight:800;line-height:1}.muted{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.tag{display:inline-block;border:1px solid #21526b;color:#bfefff;border-radius:999px;padding:4px 9px;margin:3px 4px 3px 0;font-size:12px}
+.timeline{display:grid;gap:12px}.rotation{border-left:3px solid var(--cyan);padding:10px 12px;background:#071018;border-radius:0 12px 12px 0}.rotation strong{color:white}
+ul{padding-left:22px;margin:8px 0}.checklist{display:grid;gap:8px}.item{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border:1px solid #153143;border-radius:10px;background:#08121a}.item input{accent-color:var(--cyan);margin-top:4px}.item.done label{text-decoration:line-through;color:#617783}
+button,input,textarea{font:inherit}.row{display:flex;gap:8px}.row input{flex:1;background:#050b10;border:1px solid #1a4258;color:var(--text);border-radius:10px;padding:10px}button{background:linear-gradient(135deg,var(--cyan),var(--blue));color:#001018;border:0;border-radius:10px;padding:10px 14px;font-weight:800;cursor:pointer}
+textarea{width:100%;min-height:120px;background:#050b10;border:1px solid #1a4258;color:var(--text);border-radius:10px;padding:12px;resize:vertical}
+footer{color:var(--muted);text-align:center;padding:5px 20px 28px}
+@media(max-width:800px){.hero,.grid2,.grid3{grid-template-columns:1fr}.brand{align-items:start;flex-direction:column}.big{font-size:34px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div><div class="kicker">Creativity • Innovation • Research Center</div><h1>CIRC <span>HQ</span></h1></div>
+    <small>The Playbook • 2026–27</small>
+  </div>
+</header>
+<main>
+<section class="hero">
+  <article class="card">
+    <div class="kicker">Current Build</div>
+    <h2>Rotation 2 • Tech Terrarium</h2>
+    <p>A collaborative installation built across every grade 5–6 CIRC class using <strong>Posca markers, retired 3D prints, hot glue, reclaimed materials, and student-made components</strong>.</p>
+    <div>
+      <span class="tag">Hands-on fabrication</span><span class="tag">Creative reuse</span><span class="tag">Shared installation</span><span class="tag">671+ students</span>
+    </div>
+  </article>
+  <article class="card">
+    <div class="kicker">Projected Reach</div>
+    <div class="big">671+</div>
+    <p class="muted">students contributing by the end of Rotation 2</p>
+    <p><strong>Theme:</strong> Engineering means embracing the challenge.</p>
+  </article>
+</section>
+
+<section class="grid2">
+  <article class="card">
+    <h2>The Playbook</h2>
+    <div class="timeline">
+      <div class="rotation">
+        <div class="kicker">Rotation 1 • Week 1</div>
+        <strong>M&M Team Launch with Tammy</strong>
+        <p>Introductions, trust, respect, communication, classroom procedures, and hands-on onboarding. Tammy and Kenny establish the shared teaching rhythm and model the equipment together.</p>
+      </div>
+      <div class="rotation">
+        <div class="kicker">Rotation 2 • Current</div>
+        <strong>Tech Terrarium</strong>
+        <p>Students design, decorate, fabricate, and attach artifacts to a cumulative CIRC installation. Emphasis on safe tool use, iteration, material reuse, and ownership of a shared space.</p>
+      </div>
+      <div class="rotation">
+        <div class="kicker">Teaching Win</div>
+        <strong>Tammy Equipment Confidence</strong>
+        <p>Kenny directly taught Tammy how to use the equipment. She left energized and can now support the workflow with less stress and more independence.</p>
+      </div>
+    </div>
+  </article>
+
+  <article class="card">
+    <h2>Classroom Buy List</h2>
+    <div id="list" class="checklist"></div>
+    <div class="row" style="margin-top:10px">
+      <input id="newItem" placeholder="Add classroom item">
+      <button onclick="addItem()">Add</button>
+    </div>
+  </article>
+</section>
+
+<section class="grid3">
+  <article class="card"><h3>Fabrication</h3><ul><li>Cardboard cutting machine(s)</li><li>Cardboard stock</li><li>Hot glue supplies</li><li>Reclaimed 3D prints</li></ul></article>
+  <article class="card"><h3>Presentation</h3><ul><li>8.5 × 11 laminating pouches</li><li>Small card sheets</li><li>Display and labeling materials</li></ul></article>
+  <article class="card"><h3>Markers</h3><ul><li>Milwaukee permanent markers</li><li>White Expo markers</li><li>Regular Sharpies</li><li>Posca paint markers</li></ul></article>
+</section>
+
+<section class="card">
+  <h2>Live Notes</h2>
+  <textarea id="notes" placeholder="Add parent feedback, student observations, logistics, next rotation ideas, or equipment notes..."></textarea>
+</section>
+</main>
+<footer>CIRC HQ stores checklist and notes locally on this device.</footer>
+<script>
+const defaults=[
+  "Cardboard cutting machine(s)",
+  "Cardboard sheets and clean scrap stock",
+  "8.5 × 11 laminating pouches",
+  "Small card sheets",
+  "Milwaukee permanent markers",
+  "White Expo markers",
+  "Regular Sharpies",
+  "Posca paint marker restock",
+  "Hot glue sticks",
+  "Safe storage bins for terrarium components"
+];
+let items=JSON.parse(localStorage.getItem("circBuyList")||"null")||defaults.map(x=>({text:x,done:false}));
+function save(){localStorage.setItem("circBuyList",JSON.stringify(items))}
+function render(){
+ const el=document.getElementById("list"); el.innerHTML="";
+ items.forEach((it,i)=>{
+  const d=document.createElement("div"); d.className="item"+(it.done?" done":"");
+  d.innerHTML=`<input type="checkbox" ${it.done?"checked":""} aria-label="complete"><label>${it.text}</label>`;
+  d.querySelector("input").onchange=e=>{items[i].done=e.target.checked;save();render()};
+  d.ondblclick=()=>{if(confirm("Remove this item?")){items.splice(i,1);save();render()}};
+  el.appendChild(d);
+ });
+}
+function addItem(){const i=document.getElementById("newItem");if(i.value.trim()){items.push({text:i.value.trim(),done:false});i.value="";save();render()}}
+document.getElementById("newItem").addEventListener("keydown",e=>{if(e.key==="Enter")addItem()});
+const notes=document.getElementById("notes");notes.value=localStorage.getItem("circNotes")||"";notes.oninput=()=>localStorage.setItem("circNotes",notes.value);
+render();
+</script>
+</body>
+</html>
